@@ -115,7 +115,7 @@ function buildReason(
   }
   return {
     kind: 'exploit',
-    text: `平均⭐${(rawMean ?? 0).toFixed(1)}(${rawCount}回)の実力派。今日は堅実に`,
+    text: `平均★${(rawMean ?? 0).toFixed(1)}(${rawCount}回)の実力派。今日は堅実に`,
   };
 }
 

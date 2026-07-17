@@ -37,7 +37,7 @@ export default function StoresView({ data, onAdd, onToggleArchive, onDelete }: P
     const vs = data.visits.filter((v) => v.restaurantId === id);
     if (vs.length === 0) return '未開拓';
     const avg = vs.reduce((a, v) => a + v.rating, 0) / vs.length;
-    return `⭐${avg.toFixed(1)}・${vs.length}回`;
+    return `★${avg.toFixed(1)}・${vs.length}回`;
   };
 
   const sorted = [...data.restaurants].sort((a, b) => {
@@ -49,7 +49,7 @@ export default function StoresView({ data, onAdd, onToggleArchive, onDelete }: P
     <section className="view">
       {!open ? (
         <button className="btn primary wide" onClick={() => setOpen(true)}>
-          + お店を追加
+          + お店を仕入れる
         </button>
       ) : (
         <div className="card form">
@@ -66,7 +66,7 @@ export default function StoresView({ data, onAdd, onToggleArchive, onDelete }: P
             <select value={genreId} onChange={(e) => setGenreId(e.target.value)}>
               {GENRES.map((g) => (
                 <option key={g.id} value={g.id}>
-                  {g.emoji} {g.label}
+                  {g.label}
                 </option>
               ))}
             </select>
@@ -121,18 +121,19 @@ export default function StoresView({ data, onAdd, onToggleArchive, onDelete }: P
         <div key={r.id} className={r.archived ? 'card store-item archived' : 'card store-item'}>
           <div className="store-main">
             <span className="sname">
-              {genreOf(r.genreId).emoji} {r.name}
+              {r.name}
+              {r.archived && <span className="soldout">売切</span>}
             </span>
             <span className="smeta muted">
-              {genreOf(r.genreId).label}
-              {r.walkMin !== undefined && `・徒歩${r.walkMin}分`}
-              {r.priceBand && `・${PRICE_LABELS[r.priceBand]}`}・{visitStats(r.id)}
+              <span className="gtag">{genreOf(r.genreId).label}</span>
+              {r.walkMin !== undefined && ` 徒歩${r.walkMin}分`}
+              {r.priceBand && ` ${PRICE_LABELS[r.priceBand]}`} {visitStats(r.id)}
             </span>
-            {r.memo && <span className="smemo muted">📝 {r.memo}</span>}
+            {r.memo && <span className="smemo muted">{r.memo}</span>}
           </div>
           <div className="store-actions">
             <button className="btn ghost small" onClick={() => onToggleArchive(r.id)}>
-              {r.archived ? '復活' : '休止'}
+              {r.archived ? '販売再開' : '売切にする'}
             </button>
             <button
               className="btn ghost small danger"

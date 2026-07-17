@@ -100,10 +100,10 @@ export default function SettingsView({
       <h2 className="section-title">データ</h2>
       <div className="card data-actions">
         <button className="btn ghost" onClick={download}>
-          📤 エクスポート(JSON)
+          エクスポート(JSON)
         </button>
         <button className="btn ghost" onClick={() => fileRef.current?.click()}>
-          📥 インポート
+          インポート
         </button>
         <input
           ref={fileRef}
@@ -119,12 +119,12 @@ export default function SettingsView({
         <button
           className="btn ghost"
           onClick={() => {
-            if (confirm('サンプルデータで置き換えますか?現在のデータは消えます')) {
+            if (confirm('見本メニューで置き換えますか?現在のデータは消えます')) {
               onLoadSample();
             }
           }}
         >
-          🎲 サンプルデータで置き換え
+          見本メニューで置き換え
         </button>
         <button
           className="btn ghost danger"
@@ -134,14 +134,14 @@ export default function SettingsView({
             }
           }}
         >
-          🗑️ 全データ削除
+          全データ削除
         </button>
       </div>
 
       <h2 className="section-title">しくみ</h2>
       <div className="card nerd">
         <p>
-          中身は<b>割引UCB</b>です。⭐評価を[0,1]に正規化して、
+          中身は<b>割引UCB</b>です。★評価を[0,1]に正規化して、
         </p>
         <p className="formula">score = μ̂ + c · √( ln N / n )</p>
         <p className="muted">

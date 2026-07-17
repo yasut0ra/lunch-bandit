@@ -3,6 +3,7 @@ import type { AppData, Restaurant, Settings, Visit } from './lib/types';
 import { todayISO } from './lib/bandit';
 import { emptyData, loadData, saveData } from './lib/storage';
 import { buildSampleData } from './lib/sample';
+import { formatFullDateJP } from './lib/format';
 import RecommendView from './components/RecommendView';
 import HistoryView from './components/HistoryView';
 import StoresView from './components/StoresView';
@@ -11,11 +12,11 @@ import RecordSheet from './components/RecordSheet';
 
 type Tab = 'today' | 'log' | 'stores' | 'settings';
 
-const TABS: Array<{ id: Tab; emoji: string; label: string }> = [
-  { id: 'today', emoji: '🎰', label: 'きょう' },
-  { id: 'log', emoji: '📝', label: 'きろく' },
-  { id: 'stores', emoji: '🏪', label: 'おみせ' },
-  { id: 'settings', emoji: '⚙️', label: 'せってい' },
+const TABS: Array<{ id: Tab; label: string }> = [
+  { id: 'today', label: 'きょう' },
+  { id: 'log', label: 'きろく' },
+  { id: 'stores', label: 'おみせ' },
+  { id: 'settings', label: 'せってい' },
 ];
 
 export default function App() {
@@ -73,9 +74,12 @@ export default function App() {
 
   return (
     <div className="app">
-      <header className="app-head">
-        <h1>🎰 ランチバンディット</h1>
-        <p className="tagline">きょうのランチ、探索か活用か。</p>
+      <header className="masthead">
+        <div className="masthead-plate">
+          <h1>ランチバンディット</h1>
+          <span className="masthead-badge">自動推薦機</span>
+        </div>
+        <p className="masthead-date">{formatFullDateJP(today)}・本日も営業中</p>
       </header>
 
       {tab === 'today' && (
@@ -120,7 +124,7 @@ export default function App() {
             className={tab === t.id ? 'tab active' : 'tab'}
             onClick={() => setTab(t.id)}
           >
-            <span className="tab-emoji">{t.emoji}</span>
+            <span className="tab-lamp" />
             {t.label}
           </button>
         ))}

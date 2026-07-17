@@ -20,24 +20,13 @@ function ScoreBar({ entry, max }: { entry: ScoreEntry; max: number }) {
   const meanW = (entry.mean / max) * 100;
   const bonusW = (entry.bonus / max) * 100;
   return (
-    <div className="scorebar-row">
-      <div
-        className="scorebar"
-        role="img"
-        aria-label={`期待値${pt(entry.mean)}ポイント、探索ボーナス${pt(entry.bonus)}ポイント`}
-      >
-        <span
-          className="seg seg-mean"
-          style={{ width: `${meanW}%` }}
-          title={`期待値 ${pt(entry.mean)}pt`}
-        />
-        <span
-          className="seg seg-bonus"
-          style={{ width: `${bonusW}%` }}
-          title={`探索ボーナス ${pt(entry.bonus)}pt`}
-        />
-      </div>
-      <span className="scorept">{pt(entry.mean + entry.bonus)}pt</span>
+    <div
+      className="scorebar"
+      role="img"
+      aria-label={`期待値${pt(entry.mean)}ポイント、探索ボーナス${pt(entry.bonus)}ポイント`}
+    >
+      <span className="seg seg-mean" style={{ width: `${meanW}%` }} />
+      <span className="seg seg-bonus" style={{ width: `${bonusW}%` }} />
     </div>
   );
 }
@@ -45,7 +34,7 @@ function ScoreBar({ entry, max }: { entry: ScoreEntry; max: number }) {
 export default function RecommendView({ data, today, onPick, onLoadSample }: Props) {
   const [genreSel, setGenreSel] = useState<ReadonlySet<string>>(new Set());
   const [maxWalk, setMaxWalk] = useState<number | null>(null);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const active = data.restaurants.filter((r) => !r.archived);
 
@@ -53,13 +42,12 @@ export default function RecommendView({ data, today, onPick, onLoadSample }: Pro
     return (
       <section className="view">
         <div className="card empty">
-          <p className="empty-emoji">🍽️</p>
-          <h2>お店を登録して始めよう</h2>
+          <h2>メニューが空です</h2>
           <p className="muted">
-            「おみせ」タブから店を追加するか、サンプルデータで雰囲気を試せます。
+            「おみせ」からお店を仕入れるか、見本メニューで試運転できます。
           </p>
           <button className="btn primary" onClick={onLoadSample}>
-            🎲 サンプルデータで試す
+            見本メニューを入れる
           </button>
         </div>
       </section>
@@ -80,8 +68,9 @@ export default function RecommendView({ data, today, onPick, onLoadSample }: Pro
     today,
   );
   const stats = computeStats(data.restaurants, data.visits);
-  const maxTotal = entries.reduce((m, e) => Math.max(m, e.mean + e.bonus), 0) || 1;
+  const maxTotal = entries.reduce((m, e) => Math.max(m, e.score), 0) || 1;
   const top = entries[0];
+  const sel = entries.find((e) => e.restaurant.id === selectedId) ?? top;
 
   const toggleGenre = (id: string) => {
     setGenreSel((prev) => {
@@ -92,47 +81,37 @@ export default function RecommendView({ data, today, onPick, onLoadSample }: Pro
     });
   };
 
+  const exploitDay = top !== undefined && top.reason.kind === 'exploit';
+
   return (
-    <section className="view">
-      <div className="stat-grid">
-        <div className="stat">
-          <span className="stat-label">総ランチ</span>
-          <span className="stat-value">
-            {stats.totalVisits}
-            <small>回</small>
-          </span>
+    <section className="view view-today">
+      <div className="led-row">
+        <div className="led-cell">
+          <span className="led-label">総ランチ</span>
+          <span className="led-value">{stats.totalVisits}</span>
         </div>
-        <div className="stat">
-          <span className="stat-label">開拓率</span>
-          <span className="stat-value">
+        <div className="led-cell">
+          <span className="led-label">開拓率</span>
+          <span className="led-value">
             {stats.totalActive > 0
               ? Math.round((stats.exploredCount / stats.totalActive) * 100)
               : 0}
-            <small>%</small>
+            %
           </span>
         </div>
-        <div className="stat">
-          <span className="stat-label">平均満足度</span>
-          <span className="stat-value">
-            {stats.avgRating !== null ? stats.avgRating.toFixed(1) : '–'}
-            <small>⭐</small>
+        <div className="led-cell">
+          <span className="led-label">平均満足</span>
+          <span className="led-value">
+            {stats.avgRating !== null ? stats.avgRating.toFixed(1) : '--'}
           </span>
         </div>
       </div>
 
       {top && (
-        <div
-          className={`banner ${
-            top.reason.kind === 'exploit' ? 'banner-exploit' : 'banner-explore'
-          }`}
-        >
-          <strong>
-            {top.reason.kind === 'exploit' ? '😋 きょうは安定志向' : '🧭 きょうは開拓日和'}
-          </strong>
+        <div className={exploitDay ? 'signboard steady' : 'signboard explore'}>
+          <strong>{exploitDay ? '本日は安定営業' : '本日は開拓日和'}</strong>
           <span>
-            {top.reason.kind === 'exploit'
-              ? '実績のある店が強い日です'
-              : '探索ボーナスが効いています。新しい一皿へ'}
+            {exploitDay ? '実績の味が強い日です' : '新規・ご無沙汰の店に妙味あり'}
           </span>
         </div>
       )}
@@ -144,7 +123,7 @@ export default function RecommendView({ data, today, onPick, onLoadSample }: Pro
             className={genreSel.has(g.id) ? 'chip on' : 'chip'}
             onClick={() => toggleGenre(g.id)}
           >
-            {g.emoji} {g.label}
+            {g.label}
           </button>
         ))}
         {[5, 10].map((w) => (
@@ -153,7 +132,7 @@ export default function RecommendView({ data, today, onPick, onLoadSample }: Pro
             className={maxWalk === w ? 'chip on' : 'chip'}
             onClick={() => setMaxWalk(maxWalk === w ? null : w)}
           >
-            🚶 {w}分以内
+            徒歩{w}分以内
           </button>
         ))}
       </div>
@@ -172,59 +151,53 @@ export default function RecommendView({ data, today, onPick, onLoadSample }: Pro
           <p className="muted">条件に合うお店がありません。フィルタを緩めてみてください。</p>
         </div>
       ) : (
-        <div className="cards">
+        <div className="tiles">
           {entries.map((e, i) => {
-            const g = genreOf(e.restaurant.genreId);
-            const isTop = i === 0;
-            const expanded =
-              expandedId === null ? isTop : expandedId === e.restaurant.id;
+            const isSel = sel !== undefined && sel.restaurant.id === e.restaurant.id;
             return (
-              <article
+              <button
                 key={e.restaurant.id}
-                className={isTop ? 'rcard top' : 'rcard'}
-                onClick={() => setExpandedId(expanded ? '' : e.restaurant.id)}
+                className={isSel ? 'tile on' : 'tile'}
+                aria-label={`${i + 1}位 ${e.restaurant.name} ${pt(e.score)}ポイント`}
+                onClick={() => setSelectedId(e.restaurant.id)}
               >
-                <div className="rcard-head">
-                  <span className={isTop ? 'rank gold' : 'rank'}>{i + 1}</span>
-                  <span className="rname">
-                    {g.emoji} {e.restaurant.name}
-                  </span>
-                </div>
-                <ScoreBar entry={e} max={maxTotal} />
-                <div className="rmeta">
-                  {e.rawCount > 0 ? (
-                    <span>
-                      ⭐{(e.rawMean ?? 0).toFixed(1)}・{e.rawCount}回・
-                      {formatDaysAgo(e.daysSinceLast)}
-                    </span>
-                  ) : (
-                    <span className="chip-new">未開拓</span>
-                  )}
-                  {e.restaurant.walkMin !== undefined && (
-                    <span className="muted">・徒歩{e.restaurant.walkMin}分</span>
-                  )}
-                </div>
-                {expanded && (
-                  <div className="rdetail">
-                    <p className="reason">{e.reason.text}</p>
-                    <p className="breakdown">
-                      スコア内訳:期待値 <b>{pt(e.mean)}pt</b> + 探索ボーナス{' '}
-                      <b>{pt(e.bonus)}pt</b>
-                    </p>
-                    <button
-                      className="btn primary"
-                      onClick={(ev) => {
-                        ev.stopPropagation();
-                        onPick(e.restaurant.id);
-                      }}
-                    >
-                      🍽️ ここにする
-                    </button>
-                  </div>
-                )}
-              </article>
+                <span className={i === 0 ? 'tile-rank no1' : 'tile-rank'}>{i + 1}</span>
+                {e.rawCount === 0 && <span className="sticker">新発売</span>}
+                <span className="tile-name">{e.restaurant.name}</span>
+                <span className="tile-genre">
+                  {genreOf(e.restaurant.genreId).label}
+                  {e.restaurant.walkMin !== undefined &&
+                    `・徒歩${e.restaurant.walkMin}分`}
+                </span>
+                <span className="tile-stats">
+                  {e.rawCount > 0
+                    ? `★${(e.rawMean ?? 0).toFixed(1)}・${e.rawCount}回・${formatDaysAgo(e.daysSinceLast)}`
+                    : '初登場・データなし'}
+                </span>
+                <span className="tile-bottom">
+                  <ScoreBar entry={e} max={maxTotal} />
+                  <span className="pt-chip">{pt(e.score)}</span>
+                </span>
+              </button>
             );
           })}
+        </div>
+      )}
+
+      {sel && (
+        <div className="lcd">
+          <div className="lcd-text">
+            <p className="lcd-name">▶ {sel.restaurant.name}</p>
+            <p className="lcd-calc">
+              期待値{pt(sel.mean)} + 探索{pt(sel.bonus)} = {pt(sel.score)}pt
+            </p>
+            <p className="lcd-reason">{sel.reason.text}</p>
+          </div>
+          <button className="decide" onClick={() => onPick(sel.restaurant.id)}>
+            これに
+            <br />
+            決定
+          </button>
         </div>
       )}
     </section>

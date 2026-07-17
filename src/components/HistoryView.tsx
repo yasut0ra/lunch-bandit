@@ -1,5 +1,4 @@
 import type { AppData } from '../lib/types';
-import { genreOf } from '../lib/types';
 import { formatDateJP, stars } from '../lib/format';
 
 interface Props {
@@ -18,12 +17,12 @@ export default function HistoryView({ data, today, onDelete, onOpenRecord }: Pro
   return (
     <section className="view">
       <button className="btn primary wide" onClick={onOpenRecord}>
-        + ランチを記録する
+        + 食券を切る(ランチを記録)
       </button>
 
       {data.visits.length === 0 ? (
         <div className="card empty">
-          <p className="muted">まだ記録がありません。食べたら⭐を付けていきましょう。</p>
+          <p className="muted">まだ発券がありません。食べたら★を付けていきましょう。</p>
         </div>
       ) : (
         dates.map((date) => (
@@ -34,11 +33,9 @@ export default function HistoryView({ data, today, onDelete, onOpenRecord }: Pro
               .map((v) => {
                 const r = byId.get(v.restaurantId);
                 return (
-                  <div key={v.id} className="card visit-row">
-                    <div className="visit-main">
-                      <span className="vname">
-                        {r ? `${genreOf(r.genreId).emoji} ${r.name}` : '(削除された店)'}
-                      </span>
+                  <div key={v.id} className="ticket">
+                    <div className="ticket-body">
+                      <span className="vname">{r ? r.name : '(削除された店)'}</span>
                       <span className="vstars" aria-label={`星${v.rating}`}>
                         {stars(v.rating)}
                       </span>

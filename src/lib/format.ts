@@ -13,6 +13,12 @@ export function formatDateJP(iso: string, today?: string): string {
   return `${m}/${day}(${w})`;
 }
 
+export function formatFullDateJP(iso: string): string {
+  const [y, m, d] = iso.split('-').map(Number);
+  const w = WEEKDAYS[new Date(y, m - 1, d).getDay()];
+  return `${y}年${m}月${d}日(${w})`;
+}
+
 export function formatDaysAgo(days: number | null): string {
   if (days === null) return '';
   if (days === 0) return 'きょう';

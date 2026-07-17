@@ -24,12 +24,12 @@ export default function RecordSheet({
   const [rating, setRating] = useState(0);
   const [note, setNote] = useState('');
 
-  const selected = restaurants.find((r) => r.id === restaurantId);
-
   return (
     <div className="sheet-overlay" onClick={onClose}>
       <div className="sheet" onClick={(e) => e.stopPropagation()}>
-        <h2>ランチを記録 {selected && genreOf(selected.genreId).emoji}</h2>
+        <h2>
+          食券を切る<span className="sheet-sub">ランチを記録</span>
+        </h2>
         {restaurants.length === 0 ? (
           <p className="muted">先に「おみせ」タブからお店を登録してください。</p>
         ) : (
@@ -39,7 +39,7 @@ export default function RecordSheet({
               <select value={restaurantId} onChange={(e) => setRestaurantId(e.target.value)}>
                 {restaurants.map((r) => (
                   <option key={r.id} value={r.id}>
-                    {genreOf(r.genreId).emoji} {r.name}
+                    {r.name}({genreOf(r.genreId).label})
                   </option>
                 ))}
               </select>
@@ -90,7 +90,7 @@ export default function RecordSheet({
                   })
                 }
               >
-                保存する
+                発券する
               </button>
             </div>
           </>
